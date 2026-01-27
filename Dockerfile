@@ -18,10 +18,15 @@ FROM $BASE_IMAGE
 # Moving files to /tmp/binderhub to then put it in the correct package path
 RUN mkdir /tmp/binderhub
 COPY --from=build /binderhub/binderhub/static/dist/ /tmp/binderhub/dist
-COPY full-replay.svg /tmp/binderhub/
 
 RUN PKG_PATH=$(python -c 'import importlib.resources as impres; print(impres.files("binderhub"))') \
 	&& mv /tmp/binderhub/dist/* "$PKG_PATH/static/dist" \
-	&& mv /tmp/binderhub/full-replay.svg "$PKG_PATH/static/logo.svg" \
 	&& rm -rf /tmp/binderhub
 
+# EC template go to separate dir so can be enabled in configration as needed
+# c.BinderHub.template_path = '/ec-templates/'
+# the template assumes hub static assets are avaialable at `/hub/static` URL,
+# if that's not the case, this URL should be defined with `template_variables`
+# config:
+# c.BinderHub.template_variables = {'hub_static_url': 'https://example.com/static'}
+COPY ec-templates /ec-templates
